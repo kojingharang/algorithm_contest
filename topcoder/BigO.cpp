@@ -1,0 +1,482 @@
+// BEGIN CUT HERE
+/******************************
+// PROBLEM STATEMENT
+// Cat Snuke received a directed graph as a present.
+
+
+You are given a vector <string> graph. The number of elements in graph is the number of vertices of the graph he received. If there is an edge from the vertex i (0-based) to the vertex j, the j-th character of the i-th element of graph is 'Y'. Otherwise the j-th character of the i-th element of graph is 'N'.
+
+
+Cat Snuke wonders how many walks of length L are there when L is very big. Return the minimal nonnegative integer K such that the number of walks of length L is O(L^K). If there is no such K, return -1 instead.
+
+
+See notes for formal definitions of walks and big-O notation.
+
+DEFINITION
+Class:BigO
+Method:minK
+Parameters:vector <string>
+Returns:int
+Method signature:int minK(vector <string> graph)
+
+
+NOTES
+-A sequence of vertices v_0, v_1, ..., v_L is called a walk of length L if for each i between 0 and L-1, inclusive, there exists an edge from vertex v_i to v_(i+1). Note that a walk may use each edge of the graph arbitrarily many times.
+-The number of walks of length L is O(L^K) iff the following condition holds: There exists a constant C such that for any positive integer L the number of walks of length L is at most C * L^K.
+
+
+CONSTRAINTS
+-graph will contain between 2 and 50 elements, inclusive.
+-Each element of graph will contain exactly V characters, where V is the number of elements of graph.
+-Each character in graph will be either 'Y' or 'N'.
+-For each i, the i-th character of the i-th element of graph will be 'N'.
+
+
+EXAMPLES
+
+0)
+{"NYY",
+ "YNY",
+ "YYN"}
+
+Returns: -1
+
+For this graph there are exactly 3*2^L walks of length L. There is no K such that 3*2^L is O(L^K).
+
+1)
+{"NYNNN",
+ "NNYNN",
+ "NNNYN",
+ "NNNNY",
+ "NNNNN"}
+
+Returns: 0
+
+The number of walks of length L is zero when L is big enough.
+
+2)
+{"NYNNN",
+ "YNNNN",
+ "NNNYN",
+ "NNNNY",
+ "NNYNN"}
+
+Returns: 0
+
+The number of walks of length L is 5 for any L.
+
+3)
+{"NYYYNYYYNNYYYYYYNYNN",
+ "NNNNYNYYNNYYYNYYNYYN",
+ "NYNNYYYNNNYYYYNYNYNN",
+ "NYYNNYYYYNNNYYNNYNYY",
+ "NYNYNNNNNNYYYYYNYYYN",
+ "YNNNNNNYNNYNNYYYYYYY",
+ "NNYYNNNNNYNYNYNNYNYY",
+ "NNYNYYNNNNYNYNYYYYNN",
+ "NYYNYYNNNYNNYYYNYNYN",
+ "YYNNYNNYYNYNNNNNYNNN",
+ "YYNYYNNYYYNYYNYNYYYY",
+ "YYNNYYNYNYNNNNYNNNNY",
+ "NNYYNYYYNNNNNYYYYYNY",
+ "YNNNYNNNNYNNNNNYNNNY",
+ "YYYYNYYNNYNNNNNYNNNN",
+ "NYYYYNYNYYNNYNNNYNNY",
+ "YYYYYNNNYYYYNYYYNNYN",
+ "NNYNNYNYNYNNNNNNYNYN",
+ "YYNYYNNNNNYNNYNYNNNY",
+ "YYYYNYNYYNNYNYNYNNNN"}
+
+Returns: -1
+
+
+
+4)
+{"NYNYYYNYYYNYYNYYNYYNYYNYNNYYYYNNNYYNNNYNYYNYNNNYNY",
+ "NNNNNNNNNNNNNNNNYNNNYNNNNNYNYNYNNNNNNYNNNNNNNNNNNN",
+ "NYNYYYYNYNYYNNYYYYYYYYYYNYYYNYYYYYYNNYYYYYYYNNYYYY",
+ "NYNNYYNNNNNNNNNNNYNNNYNYNNYNYNYYNYYNNYYYNNNNNNNYYY",
+ "NNNNNNNNNNNNYNNYYNNNYNNNNYNNYNNYNNYNNYNYNNNNNNNYYN",
+ "NNNNNNNNNNNNNNNNYNNNYNNNNNNNNNYNNNNNNYNNNNNNNNNNNN",
+ "YYNYNNNYNYYYYNYYYYYYYYYYNYYYYYYYNYYNNYNYYYYYNNYNYY",
+ "NYNYYNNNYYNNYNNYYYNNYYNYNYYNYYYNNNYNNYYYNNNNNNNYYY",
+ "NYNYYYNYNYNNNNNYYYNNNNNNNYYNYYYYNYYNNYYYNNNNNNNYYY",
+ "NYNNNYNNNNNNNNNYYNNNYNNNNNYNYNYNNYYNNYNYNNNYNNNNYN",
+ "NYNYYYNNYYNYYNYNYYNYYYNYNYYNYYYYNYNNNNYYYYNYNNNYNY",
+ "NYNNYYNNNYNNYNNYYYNNYYNNNYYNYYNNNYYNNNNYNNNYNNNYYY",
+ "NNNNNNNNNNNNNNNYYNNNYNNNNNNNYNNYNYNNNYYNNNNNNNNYNN",
+ "YYYYNYYYYYYYYNYYYYNYYYYYYYYYYYNYYNYYYNYYYYYNNYYNYN",
+ "NYNYYNNYYYNYYNNYYYNYNYNYNYYNYYYYNYYNNYYYYYNYNNNNNY",
+ "NYNNNNNNNNNNNNNNYNNNYNNNNNYNYNYYNYNNNNNNNNNNNNNNNN",
+ "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNN",
+ "NYNNNYNNNNNNNNNYYNNNNNNNNNNNYNYYNYYNNYNNNNNNNNNYYN",
+ "NYNYYYNNYYNYNNYYYYNYYYNYNYYYYNNYNNYNNYNYYYYNNNYYYY",
+ "NNNYYYNNNYNYYNNYYYNNYYNNNYYNYYYYNYYNNNYYNYNYNNNYYY",
+ "NNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNN",
+ "NYNNNYNNNNNNNNNYNNNNNNNNNYYNYYYYNYYNNYNNNNNNNNNYYN",
+ "YYNYYYNNYYNYYNYNYYNYNYNYNYYYYYYYNYNNNYYYYYNYNNYYYY",
+ "NYNYYYNNNNNNYNNNYYNNYYNNNYYNYYYYNYYNNYYYNNNNNNNYNY",
+ "YNNNYYYYYYYYYNYYYYYYYYYNNYYNYNYNYNNYYYYYYYNYNNYYYY",
+ "NYNNNYNNNNNNNNNYYNNNYNNNNNYNYNYYNYYNNNNYNNNNNNNYNN",
+ "NNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNN",
+ "NYNYYYNYYYNYNNNNYYNYYNNYNYYNYYYYNYYNNNNNYYNYNNYYNN",
+ "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNN",
+ "NYNNNYNNNNNNNNNYYNNNYNNNNNNNNNYYNYYNNNNYNNNNNNNYYY",
+ "NNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+ "NNNNNNNNNNNNNNNNYNNNYNNNNNYNNNYNNNNNNNNNNNNNNNNNNN",
+ "NYNYYNNYYYNNNNNYYYNYYYNNNYYYYYYYNYYNNYYYYNNYNNNNYY",
+ "NNNNNNNNNNNNNNNYYNNNYNNNNNYNYNYYNNNNNYNNNNNNNNNNNN",
+ "NYNNNNNNNNNNNNNNYNNNYNNNNNYNNNYYNNNNNNNNNNNNNNNYNN",
+ "NYNYYYYYNYYYYNYYYYYYNYYYNNNYYYYYNYYNYNYYYYYYNYYYNY",
+ "YYNYYYNYYYNNNNNYNYYYYNYNNNYYYYYYNYYNNYYNYNNYNNYNNY",
+ "NNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+ "NYNNNYNNNNNNNNNYYNNNNYNNNNYNYNNYNNNNNYNYNNNNNNNYNN",
+ "NYNNNYNNNNNNNNNYYNNNNNNNNYYNYNYNNYYNNNNNNNNNNNNYNN",
+ "NYNYYYNYYYNYNNNNNYNNYYNYNNYNNYYYNYYNNYYYNNNNNNNYYY",
+ "NYNYYNNNNYNYYNNYYYNYYYNNNYYNYYYNNYYNNYYYNNNYNNNNYY",
+ "NYNYNYNYYYNYYNYYNYNYNYYYNNYYYYYYNNNNNYYYNYNYNNYNYY",
+ "NYNNNYNNNYNNNNNYYYNNYNNNNNYNYNNNNYYNNYNYNNNNNNNYYN",
+ "YYYNNYNYYYNYNNYYYYYNYYNYNYYYYYNYYNYNYYYYYNNYNNYNYN",
+ "YYNNYYYYYYYNYNYYNYYYYYYYYYYNYYYNYYYNNYYYYNYYNNYYYY",
+ "NYNNYYNYYYNNYNNYYYNYNYNYNYYNNYYNNYNNNYYYNYNYNNNNYY",
+ "NNNNNNNNNNNNNNNNYNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNN",
+ "NNNNNNNNNNNNNNNNNNNNYNNNNNYNYNYNNNNNNYNNNNNNNNNYNN",
+ "NYNNYYNNNNNNNNNYYNNNNNNNNYYNYNNYNYYNNYNYNNNNNNNYNN"}
+
+Returns: 7
+
+
+
+******************************/
+// END CUT HERE
+#line 153 "BigO.cpp"
+#include <vector>
+#include <map>
+#include <set>
+#include <queue>
+#include <algorithm>
+#include <numeric>
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <climits>
+#include <cstdlib>
+#include <cstring>
+#include <cfloat>
+#include <cmath>
+#include <ctime>
+#include <cassert>
+#include <cctype>
+#include <cstdio>
+#include <cassert>
+using namespace std;
+
+#define EPS 1e-12
+#define ll long long
+#define VI vector<ll>
+#define PII pair<ll, ll> 
+#define VVI vector<vector<ll> >
+#define REP(i,n) for(int i=0,_n=(n);(i)<(int)_n;++i)
+#define RANGE(i,a,b) for(int i=(int)a,_b=(int)(b);(i)<_b;++i)
+#define FOR(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
+#define ALL(c) (c).begin(), (c).end()
+#define ALLR(c) (c).rbegin(), (c).rend()
+#define PB push_back
+#define MP(a, b) make_pair(a, b)
+#define POPCOUNT __builtin_popcount
+#define POPCOUNTLL __builtin_popcountll
+#define CLEAR(table, v) memset(table, v, sizeof(table));
+#define PRINT2(table, W, H) REP(y, H) { REP(x, W) cout<<table[y][x]<<" "; cout<<"\n"; }
+#define PRINT3(table, W, H, D) REP(d, D) { REP(y, H) { REP(x, W) cout<<table[d][y][x]<<" "; cout<<"\n"; } cout<<"\n"; }
+template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const map<T0, T1>& v) { for( typename map<T0, T1>::const_iterator p = v.begin(); p!=v.end(); p++ ){os << p->first << ": " << p->second << " ";} return os; }
+template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const pair<T0, T1>& v) { os << v.first << ": " << v.second << " "; return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<T>& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << " "; } return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const set<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
+
+
+struct SCC {
+	vector<vector<int> > g;
+	vector<vector<int> > rg;
+	vector<int> vs;
+	vector<bool> used;
+	vector<int> sccID; // vertex id -> groupID
+	vector<vector<int> > scc; // groupID -> vertices
+	vector<vector<int> > sccG; // graph of group
+	SCC(int N) {
+		g.resize(N);
+		rg.resize(N);
+		used.resize(N);
+		sccID.resize(N);
+	}
+	void addEdge(int a, int b) { g[a].PB(b); rg[b].PB(a); }
+	void dfs(int v) {
+		used[v] = true;
+		REP(i, g[v].size()) if(!used[g[v][i]]) dfs(g[v][i]);
+		vs.PB(v);
+	}
+	void rdfs(int v) {
+		used[v] = true;
+		sccID[v] = scc.size()-1;
+		scc.back().PB(v);
+		REP(i, rg[v].size()) if(!used[rg[v][i]]) rdfs(rg[v][i]);
+	}
+	void run() {
+		REP(v, g.size()) if(!used[v]) dfs(v);
+		used.assign(g.size(), false);
+		for(int i=vs.size()-1;i>=0;i--) if(!used[vs[i]]) { scc.PB(vector<int>()); rdfs(vs[i]); }
+		
+		vector<map<int, int> > h(scc.size());
+		REP(i, g.size()) REP(j, g[i].size()) h[sccID[i]][sccID[g[i][j]]] = 1;
+		sccG.resize(scc.size());
+		REP(i, h.size()) FOR(e, h[i]) if(e->first != i) sccG[i].PB(e->first);
+	}
+};
+
+struct TopologicalSort {
+	vector<int> sorted;
+	vector<bool> visited;
+	vector<vector<int> > g;
+	TopologicalSort(const vector<vector<int> >& g) {
+		this->g = g;
+		visited.resize(g.size());
+		REP(i, g.size()) if(!visited[i]) dfs(i);
+		reverse(ALL(sorted));
+	}
+	void dfs(int v) {
+		visited[v]=true;
+		REP(i, g[v].size()) if(!visited[g[v][i]]) dfs(g[v][i]);
+		sorted.PB(v);
+	}
+};
+//TopologicalSort ts(scc.sccG);
+//cout<<ts.sorted<<endl;
+
+class BigO {
+	public:
+	int minK(vector <string> G) {
+		int N=G.size();
+		SCC scc(N);
+		REP(i, N) REP(j, N) if(G[i][j]=='Y') scc.addEdge(i, j);
+		scc.run();
+//		cout<<"<<"<<scc.scc<<">>"<<endl;
+//		cout<<""<<scc.sccID<<""<<endl;
+//		cout<<"##"<<scc.sccG<<"##"<<endl;
+		
+		VI nOut(N);
+		REP(i, N) REP(j, N) if(G[i][j]=='Y' && scc.sccID[i]==scc.sccID[j]) nOut[i]++;
+		REP(i, N) if(nOut[i]>=2) return -1;
+		
+		int NG=scc.sccG.size();
+		VI w(NG);
+		REP(i, NG) w[i] = scc.scc[i].size()==1 ? 0 : 1;
+		
+		TopologicalSort ts(scc.sccG);
+//		cout<<ts.sorted<<endl;
+		VI pot = w;
+		REP(i, ts.sorted.size()) {
+			int from = ts.sorted[i];
+			REP(toi, scc.sccG[from].size()) {
+				int to = scc.sccG[from][toi];
+				if(pot[to] < pot[from]+w[to]) pot[to] = pot[from]+w[to];
+			}
+		}
+//		cout<<pot<<endl;
+		return max(0LL, *max_element(ALL(pot))-1);
+	}
+};
+
+// BEGIN CUT HERE
+#include <ctime>
+double start_time; string timer()
+ { ostringstream os; os << " (" << int((clock()-start_time)/CLOCKS_PER_SEC*1000) << " msec)"; return os.str(); }
+bool verify_case(const int& Expected, const int& Received, bool noPASSmsg=false) {
+ bool ok = (Expected == Received);
+ if(ok) { if(!noPASSmsg) cerr << "PASSED" << timer() << endl; } 
+ else { cerr << "FAILED" << timer() << endl;
+ cerr << "\to: \"" << Expected << '\"' << endl << "\tx: \"" << Received << '\"' << endl; } return ok;  }
+#define CASE(N) {cerr << "Test Case #" << N << "..." << flush; start_time=clock();
+#define END	 verify_case(_, BigO().minK(graph));}
+template<class T> void print(const vector<T>& v) {cout<<"{";for(int i=0;i<(int)v.size();i++) {cout<<v[i];if(i<(int)v.size()-1) cout<<",";} cout<<"}"<<endl;}
+template<class T> void print(const T& v) {cout<<v<<endl;}
+int main(){
+
+CASE(0)
+	string graph_[] = {
+/*
+0 -> 1 -> 16
+0 -> 10 
+*/
+"NNYNNYNNNNNNNNNNNNNNN", 
+"NNYNYNNYNYYNYNNNNYNNN", 
+"NNNYNNNNNNNNNNNNNNNNN", 
+"NNNNNNNNNNNNYNNNNNNNN", 
+"NNYYNNNNNNNNNNNNNNNYN", 
+"NNNNNNNNNNNNYYNNNNNNN", 
+"NNNNNNNNNNNNNYNYNNNYN", 
+"YNNYNNNNNNNNNYNNNNNNN", 
+"YNYNYNYYNYNYNYNYNNNNN", 
+"NNNNNNNNNNNNNNNNNYNYN", 
+"YYNNNNNYNNNNNYNNYNNNN", 
+"NNNNNNYNNNNNNYNNNYYYN", 
+"NNYNNNNNNNNNNNNNNNNNN", 
+"YNNNNNNNNNNNNNNNNNNNN", 
+"NNYNNNNNYNNNYYNNNNNYN", 
+"NNYNNNNYNNNNNNNNNNNYY", 
+"NNYNNNNNNNNYYYNYNNNNN", 
+"NNNNYNYNNNNNNNNNNNNNN", 
+"NNYNYYNYNNNNNNYYNNNNN", 
+"NNNNYYNNNNNNNYNNNNNNN", 
+"YNYYNNNNNYNNNNNNNNNNN"};
+	  vector <string> graph(graph_, graph_+sizeof(graph_)/sizeof(*graph_)); 
+	int _ = 5; 
+END
+//return 0;
+
+
+CASE(0)
+	string graph_[] = {
+	"NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "NNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNYNNNNNNNNNNNNNNNN", "YNNYNNNYNYNYNNNNNYNNNNNNYNYNNNNNNNNNNNNNYNNYNNNYNN", "NNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNYNNNNNNNNNYNNNNNN", "NYNNNYNNYYNYNNNNYNNNNNYNNNNNYNNNYYNNNNYNNNNYNNNNYN", "YNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNN", "NNNNNNNNNNNNNNYNNYNNNYNYNNNNNNNYNYNNNNNNNNNNNNNYNN", "NYNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNY", "YYNNNYYYNYNNNNNNNNNNNNNNYNNNNNNYYNNNNNNNNYNNNNNNNN", "YYNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNYNNNNNNNNNNYNNNNN", "YYNNNNYNYYNYYYNNYYYYNNNNYNYYYNNYNNYNYNNNNNYNYNNNNN", "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNYNY", "NYNNNNNNNNNYNYNNNNNYNYYNNNNNNYNNYYYYYYNNNNNNNNYYNY", "YNNNNNNNNYNNNNNNNYYNNNNNYNNNNNNNYNNNNNNNYYNNNNNYNN", "NNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNN", "NNNYNNNNNYNNNYNNYYNNYNNNNNYNNNNNNYNNYNNNYNNYYYYNNN", "NYYYYYYNNNNNNNNNNNYNNNYYYNYNYNYNNYNNNYNNYNNNNNYNNN", "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "YYYNNNNNNNNNNNNNNNNNYNNNYNNNNNNYNYNNNNNNNYNNNYYYNY", "YNNNNNNNNNNNNNNNNNNNNNNYNNYNNNNNYNYNNNNNNNNNNYNNNN", "NNYYNNNNNNNNNNNNNYNNNNNNYYNNNNNNNYNNNNNNYNNYNYNYNY", "NNNNNNNNNNNYNNNNNYNYNNNNNNNNNNNYYNNNYYYNNNNNYYNYNN", "NNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "NNNYNYNNNNNYNNYNNNNNNNYNNYNNNNNNNNNNNYNNYNNNNYNYNY", "NNNNNYNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNY", "NNNNNNNYNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN", "NYYYNNNYNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNYNNYNNNYNN", "NNNYNYNNNYNNYNNNNNNNNYNYNNNNYNYNYNNNNNNYNYNNNNNNNN", "NNNNNNNNNYNNNNNNNYNNNNYYNNNNNNNNNNNYNYYNNYNNYNNNNN", "NNYNNNYNYNNNYNYNNNYYNYYNYNNNNNNNNNYYNNNNNNNNNNNYNN", "YNNNNNNNYYNNYNYNNNNNNNNNNYNNNNNNNNNYNNNNYNYNNNNYNY", "NYNNNNNNNNNYNNYNNNNNNNNNYYNNNNNNNNNNYNNNYNNYNNNNNN", "YNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNY", "YNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNY", "NNNNNNNYNNNYNYNNNNNNYNNNYNNNNNNNNYNNYNNNNNNYNYNYNN", "NNNNNNNNYNNNNNYNNYNNNNNNNNNNNNNNNYNNNYYNYYNNYNNNNN", "YNNNNNNNNNNNNNYNNNNNYNNNYNYNNNNNNYNNNNNNNNNNNNNNNY", "NNNNNNNNNNNYNNNNNNNNYNNNNNNNNNNNNNNNNNNNNYNNYNNYNN", "NYNNNNNNNNNYNNYNNYNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNYN", "NNNYNNNYNNYNNNNNNNNNNYYYNYNNNYNNYNNNYNYNNYNYNYYNNY", "YNNYNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNY", "NYYYNNNNNYNNNNYNNNNNNNNNNNNNNNNYNNNNNNYNNNNNYNNNNN", "NNYNNYNNNYNNNYNNNNNNNNNNNNYNNYYYYNYNNNNNNYNNNNYNYN", "NNNNNNNNNYNNNNNNNYNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNY", "NYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNN", "YYNYNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNYNNYNNNNNY", "YNNNNYNNNNNYNNNNNNNNNNNNNNNNYNNYNNNNNNNNNNNYYNNNNN", "NYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNYNNNNNNNNN", "YNNNNNNYNNNNNNNNNYNNNNNYNNYNNNNYNYNNYNNNNNNYNNNNNN", "NYNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN"};
+	  vector <string> graph(graph_, graph_+sizeof(graph_)/sizeof(*graph_)); 
+	int _ = 9; 
+END
+//return 0;
+
+CASE(0)
+	string graph_[] = {"NYY",
+ "YNY",
+ "YYN"};
+	  vector <string> graph(graph_, graph_+sizeof(graph_)/sizeof(*graph_)); 
+	int _ = -1; 
+END
+ // 0<->1<->2<->0
+CASE(1)
+	string graph_[] = {"NYNNN",
+ "NNYNN",
+ "NNNYN",
+ "NNNNY",
+ "NNNNN"};
+ // 0->1->2->3->4
+	  vector <string> graph(graph_, graph_+sizeof(graph_)/sizeof(*graph_)); 
+	int _ = 0; 
+END
+
+CASE(2)
+	string graph_[] = {"NYNNN",
+ "YNNNN",
+ "NNNYN",
+ "NNNNY",
+ "NNYNN"};
+ // 0<->1 2->3->4->2
+	  vector <string> graph(graph_, graph_+sizeof(graph_)/sizeof(*graph_)); 
+	int _ = 0; 
+END
+//return 0;
+CASE(3)
+	string graph_[] = {"NYYYNYYYNNYYYYYYNYNN",
+ "NNNNYNYYNNYYYNYYNYYN",
+ "NYNNYYYNNNYYYYNYNYNN",
+ "NYYNNYYYYNNNYYNNYNYY",
+ "NYNYNNNNNNYYYYYNYYYN",
+ "YNNNNNNYNNYNNYYYYYYY",
+ "NNYYNNNNNYNYNYNNYNYY",
+ "NNYNYYNNNNYNYNYYYYNN",
+ "NYYNYYNNNYNNYYYNYNYN",
+ "YYNNYNNYYNYNNNNNYNNN",
+ "YYNYYNNYYYNYYNYNYYYY",
+ "YYNNYYNYNYNNNNYNNNNY",
+ "NNYYNYYYNNNNNYYYYYNY",
+ "YNNNYNNNNYNNNNNYNNNY",
+ "YYYYNYYNNYNNNNNYNNNN",
+ "NYYYYNYNYYNNYNNNYNNY",
+ "YYYYYNNNYYYYNYYYNNYN",
+ "NNYNNYNYNYNNNNNNYNYN",
+ "YYNYYNNNNNYNNYNYNNNY",
+ "YYYYNYNYYNNYNYNYNNNN"};
+	  vector <string> graph(graph_, graph_+sizeof(graph_)/sizeof(*graph_)); 
+	int _ = -1; 
+END
+CASE(4)
+	string graph_[] = {"NYNYYYNYYYNYYNYYNYYNYYNYNNYYYYNNNYYNNNYNYYNYNNNYNY",
+ "NNNNNNNNNNNNNNNNYNNNYNNNNNYNYNYNNNNNNYNNNNNNNNNNNN",
+ "NYNYYYYNYNYYNNYYYYYYYYYYNYYYNYYYYYYNNYYYYYYYNNYYYY",
+ "NYNNYYNNNNNNNNNNNYNNNYNYNNYNYNYYNYYNNYYYNNNNNNNYYY",
+ "NNNNNNNNNNNNYNNYYNNNYNNNNYNNYNNYNNYNNYNYNNNNNNNYYN",
+ "NNNNNNNNNNNNNNNNYNNNYNNNNNNNNNYNNNNNNYNNNNNNNNNNNN",
+ "YYNYNNNYNYYYYNYYYYYYYYYYNYYYYYYYNYYNNYNYYYYYNNYNYY",
+ "NYNYYNNNYYNNYNNYYYNNYYNYNYYNYYYNNNYNNYYYNNNNNNNYYY",
+ "NYNYYYNYNYNNNNNYYYNNNNNNNYYNYYYYNYYNNYYYNNNNNNNYYY",
+ "NYNNNYNNNNNNNNNYYNNNYNNNNNYNYNYNNYYNNYNYNNNYNNNNYN",
+ "NYNYYYNNYYNYYNYNYYNYYYNYNYYNYYYYNYNNNNYYYYNYNNNYNY",
+ "NYNNYYNNNYNNYNNYYYNNYYNNNYYNYYNNNYYNNNNYNNNYNNNYYY",
+ "NNNNNNNNNNNNNNNYYNNNYNNNNNNNYNNYNYNNNYYNNNNNNNNYNN",
+ "YYYYNYYYYYYYYNYYYYNYYYYYYYYYYYNYYNYYYNYYYYYNNYYNYN",
+ "NYNYYNNYYYNYYNNYYYNYNYNYNYYNYYYYNYYNNYYYYYNYNNNNNY",
+ "NYNNNNNNNNNNNNNNYNNNYNNNNNYNYNYYNYNNNNNNNNNNNNNNNN",
+ "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNN",
+ "NYNNNYNNNNNNNNNYYNNNNNNNNNNNYNYYNYYNNYNNNNNNNNNYYN",
+ "NYNYYYNNYYNYNNYYYYNYYYNYNYYYYNNYNNYNNYNYYYYNNNYYYY",
+ "NNNYYYNNNYNYYNNYYYNNYYNNNYYNYYYYNYYNNNYYNYNYNNNYYY",
+ "NNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNN",
+ "NYNNNYNNNNNNNNNYNNNNNNNNNYYNYYYYNYYNNYNNNNNNNNNYYN",
+ "YYNYYYNNYYNYYNYNYYNYNYNYNYYYYYYYNYNNNYYYYYNYNNYYYY",
+ "NYNYYYNNNNNNYNNNYYNNYYNNNYYNYYYYNYYNNYYYNNNNNNNYNY",
+ "YNNNYYYYYYYYYNYYYYYYYYYNNYYNYNYNYNNYYYYYYYNYNNYYYY",
+ "NYNNNYNNNNNNNNNYYNNNYNNNNNYNYNYYNYYNNNNYNNNNNNNYNN",
+ "NNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNN",
+ "NYNYYYNYYYNYNNNNYYNYYNNYNYYNYYYYNYYNNNNNYYNYNNYYNN",
+ "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNN",
+ "NYNNNYNNNNNNNNNYYNNNYNNNNNNNNNYYNYYNNNNYNNNNNNNYYY",
+ "NNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+ "NNNNNNNNNNNNNNNNYNNNYNNNNNYNNNYNNNNNNNNNNNNNNNNNNN",
+ "NYNYYNNYYYNNNNNYYYNYYYNNNYYYYYYYNYYNNYYYYNNYNNNNYY",
+ "NNNNNNNNNNNNNNNYYNNNYNNNNNYNYNYYNNNNNYNNNNNNNNNNNN",
+ "NYNNNNNNNNNNNNNNYNNNYNNNNNYNNNYYNNNNNNNNNNNNNNNYNN",
+ "NYNYYYYYNYYYYNYYYYYYNYYYNNNYYYYYNYYNYNYYYYYYNYYYNY",
+ "YYNYYYNYYYNNNNNYNYYYYNYNNNYYYYYYNYYNNYYNYNNYNNYNNY",
+ "NNNNNNNNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+ "NYNNNYNNNNNNNNNYYNNNNYNNNNYNYNNYNNNNNYNYNNNNNNNYNN",
+ "NYNNNYNNNNNNNNNYYNNNNNNNNYYNYNYNNYYNNNNNNNNNNNNYNN",
+ "NYNYYYNYYYNYNNNNNYNNYYNYNNYNNYYYNYYNNYYYNNNNNNNYYY",
+ "NYNYYNNNNYNYYNNYYYNYYYNNNYYNYYYNNYYNNYYYNNNYNNNNYY",
+ "NYNYNYNYYYNYYNYYNYNYNYYYNNYYYYYYNNNNNYYYNYNYNNYNYY",
+ "NYNNNYNNNYNNNNNYYYNNYNNNNNYNYNNNNYYNNYNYNNNNNNNYYN",
+ "YYYNNYNYYYNYNNYYYYYNYYNYNYYYYYNYYNYNYYYYYNNYNNYNYN",
+ "YYNNYYYYYYYNYNYYNYYYYYYYYYYNYYYNYYYNNYYYYNYYNNYYYY",
+ "NYNNYYNYYYNNYNNYYYNYNYNYNYYNNYYNNYNNNYYYNYNYNNNNYY",
+ "NNNNNNNNNNNNNNNNYNNNNNNNNNNNNNYNNNNNNNNNNNNNNNNNNN",
+ "NNNNNNNNNNNNNNNNNNNNYNNNNNYNYNYNNNNNNYNNNNNNNNNYNN",
+ "NYNNYYNNNNNNNNNYYNNNNNNNNYYNYNNYNYYNNYNYNNNNNNNYNN"};
+	  vector <string> graph(graph_, graph_+sizeof(graph_)/sizeof(*graph_)); 
+	int _ = 7; 
+END
+#if 0  // DO RANDOM TESTS
+#define UNIFORM_DOUBLE(a, b) (((b-a)*(double)rand()/RAND_MAX)+a) // [a, b) 
+#define UNIFORM_LL(a, b) (ll)UNIFORM_DOUBLE(a, b) // [a, b) 
+srand((unsigned)time(NULL));
+cerr<<endl;
+cerr<<"RANDOM TESTS"<<endl;
+for(int loop=0;loop<10;loop++) {
+// param type: String
+start_time=clock();
+	vector <string> graph; 
+	{
+		int N=UNIFORM_LL(1, 50);
+		graph = vector <string>(N); 
+		REP(i, N) {
+			graph[i] = UNIFORM_LL(0, 1000);
+		}
+	}
+	int _0 = BigO().minK(graph);
+	int _1 = BigOTry().minK(graph);
+	if(!verify_case(_0, _1, true)) {
+print(graph);
+	}
+}
+#endif
+
+}
+// END CUT HERE
