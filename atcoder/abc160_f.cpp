@@ -59,25 +59,27 @@ template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
 #define MOD 1000000007LL
 #define INF (1LL<<60)
 
-struct modll {
-	static const ll MODVAL;
+template<ll MODVAL>
+struct Modll {
 	ll val;
-	modll() : val(0) {}
-	modll(ll v) : val(v) { normalize(); }
+	Modll() : val(0) {}
+	Modll(ll v) : val(v) { normalize(); }
 	void normalize() { val = (val+MODVAL) % MODVAL; }
-	modll  operator+ (ll v) { return modll(val+v); }
-	modll& operator+=(ll v) { val+=v; normalize(); return *this; }
-	modll  operator- (ll v) { return modll(val-v); }
-	modll& operator-=(ll v) { val-=v; normalize(); return *this; }
-	modll  operator* (ll v) { return modll(val*v); }
-	modll& operator*=(ll v) { val*=v; normalize(); return *this; }
-	modll  operator^ (ll e) { modll x(val); modll v(1); for(;e;x=x*x,e>>=1) if(e&1) v = v * x; return v; } // pow
-	modll inv() { modll x(val); return x^(MODVAL-2); } // MODVAL must be prime number when use this!
-	static modll inv(ll v) { return modll(v).inv(); }
+	Modll  operator+ (ll v) { return Modll(val+v); }
+	Modll& operator+=(ll v) { val+=v; normalize(); return *this; }
+	Modll  operator- (ll v) { return Modll(val-v); }
+	Modll& operator-=(ll v) { val-=v; normalize(); return *this; }
+	Modll  operator* (ll v) { return Modll(val*v); }
+	Modll& operator*=(ll v) { val*=v; normalize(); return *this; }
+	Modll  operator^ (ll e) { Modll x(val); Modll v(1); for(;e;x=x*x,e>>=1) if(e&1) v = v * x; return v; } // pow
+	Modll inv() { Modll x(val); return x^(MODVAL-2); } // MODVAL must be prime number when use this!
+	static Modll inv(ll v) { return Modll(v).inv(); }
 	operator ll() { return val; }
 };
-const ll modll::MODVAL = 1000000007;
-std::ostream& operator<<(std::ostream& os, const modll& v) { os << v.val; return os; }
+template<ll MODVAL>
+std::ostream& operator<<(std::ostream& os, const Modll<MODVAL>& v) { os << v.val; return os; }
+using modll = Modll<1000000007>;
+
 
 #define MAXN 200010
 modll facts[MAXN];
@@ -95,8 +97,14 @@ void gen_facts() {
 	REP(i, MAXN) assert((facts[i] * inv_facts[i])==1);
 }
 
-vector<modll> dp, dp2;
-VI size, sizePa;
+// そのノード以下の書き方組み合わせ数
+vector<modll> dp;
+// そのノード含めて親方向の書き方組み合わせ数
+vector<modll> dp2;
+// そのノード以下のノード数
+VI size;
+// そのノード含めて親方向のノード数
+VI size2;
 void dfs(ll cur, ll prev, VVI& g) {
 	ll ch = 0;
 	for(ll adj: g[cur]) if(adj!=prev) ch++;
@@ -115,8 +123,57 @@ void dfs(ll cur, ll prev, VVI& g) {
 	dp[cur] = facts[size[cur]-1] * v;
 }
 void dfs2(ll cur, ll prev, VVI& g) {
-	sizePa[cur] = (prev!=-1 ? sizePa[prev] : 0)+1;
-	dp2[cur] = facts[size[prev]-size[cur]+sizePa[prev]-1] * dp[prev] * dp[cur].inv() * facts[size[cur]] * dp2[prev] * inv_facts[sizePa[prev]];
+	// 自分の分
+	size2[cur]++;
+	if(prev!=-1) {
+		size2[cur] += size2[prev];
+		// 兄弟ただし自分以外
+		size2[cur] += size[prev] - size[cur] - 1;
+	}
+
+	/*
+	親を塗った後, 親の周りただし自分以外を塗る方法の数
+		(size2[prev]-1)!Πdp/size
+	親の親方向は
+		dp2[prev] / (size2[prev]-1)!
+	親の子方向は
+		dp[prev]からN!と自分方向の寄与を消したものなので
+		dp[prev] / (size[prev]-1)! * size[cur]! / dp[cur]
+	*/
+//	DD("");
+//	DD(cur);
+//	DD(prev);
+	modll v = 1LL;
+	if(prev!=-1) {
+		v *= dp2[prev] * inv_facts[size2[prev]-1];
+//		DD("parent of parent");
+//		DD(dp2[prev]);
+//		DD(size2[prev]-1);
+//		DD(facts[size2[prev]-1]);
+//		DD(dp2[prev] * inv_facts[size2[prev]-1]);
+	}
+	if(prev!=-1) {
+		v *= dp[prev] * inv_facts[size[prev]-1] * facts[size[cur]] * dp[cur].inv();
+//		DD("bro");
+//		DD(dp[prev]);
+//		DD(size[prev]);
+//		DD(facts[size[prev]-1]);
+//		DD(size[cur]);
+//		DD(facts[size[cur]]);
+//		DD(dp[cur]);
+//		DD(dp[prev] * inv_facts[size[prev]-1] * facts[size[cur]] * dp[cur].inv());
+	}
+	dp2[cur] = 1LL;
+	if(prev!=-1) {
+		dp2[cur] = facts[size2[cur]-2] * v;
+//		DD("total");
+//		DD(size2[cur]-2);
+//		DD(facts[size2[cur]-2]);
+	}
+//	DD(dp2[cur]);
+	for(ll adj: g[cur]) if(adj!=prev) {
+		dfs2(adj, cur, g);
+	}
 }
 int main() {
 	gen_facts();
@@ -139,18 +196,23 @@ int main() {
 //			cout<<dp[i]<<endl;
 //		}
 		dp = vector<modll>(N);
+		size = VI(N);
 		dfs(0, -1, g);
 		dp2 = vector<modll>(N);
-		sizePa = VI(N);
+		size2 = VI(N);
 		dfs2(0, -1, g);
+//		DD(dp);
+//		DD(dp2);
+//		DD(size);
+//		DD(size2);
 		REP(i, N) {
-			dp = vector<modll>(N);
-			size = VI(N);
-			dfs(i, -1, g);
-			DD(dp);DD(size);
-			cout<<dp[i]<<endl;
+			/*
+			(N-1)!*dp2[cur]/(size2[cur]-1)!*dp[cur]/(size[cur]-1)!
+			*/
+			modll ans = facts[N-1]*dp2[i]*inv_facts[size2[i]-1]*dp[i]*inv_facts[size[i]-1];
+			cout<<ans<<endl;
 		}
-		break;
+//		break;
 	}
 	
 	return 0;
