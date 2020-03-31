@@ -97,122 +97,169 @@ void gen_facts() {
 	REP(i, MAXN) assert((facts[i] * inv_facts[i])==1);
 }
 
-// そのノード以下の書き方組み合わせ数
-vector<modll> dp;
-// そのノード含めて親方向の書き方組み合わせ数
-vector<modll> dp2;
-// そのノード以下のノード数
-VI size;
-// そのノード含めて親方向のノード数
-VI size2;
-void dfs(ll cur, ll prev, VVI& g) {
-	ll ch = 0;
-	for(ll adj: g[cur]) if(adj!=prev) ch++;
-	if(ch==0) {
-		dp[cur] = 1;
-		size[cur]=1;
-		return;
-	}
-	modll v = 1LL;
-	for(ll adj: g[cur]) if(adj!=prev) {
-		dfs(adj, cur, g);
-		size[cur]+=size[adj];
-		v *= dp[adj]*inv_facts[size[adj]];
-	}
-	size[cur]++;
-	dp[cur] = facts[size[cur]-1] * v;
-}
-void dfs2(ll cur, ll prev, VVI& g) {
-	// 自分の分
-	size2[cur]++;
-	if(prev!=-1) {
-		size2[cur] += size2[prev];
-		// 兄弟ただし自分以外
-		size2[cur] += size[prev] - size[cur] - 1;
-	}
+/*
+https://github.com/key-moon/Library/blob/master/src/Algorithm/rerooting.csx
+keymoon による C# の実装を noshi91 が C++ に移植したものです
+verified with https://atcoder.jp/contests/abc160/tasks/abc160_f
+*/
 
-	/*
-	親を塗った後, 親の周りただし自分以外を塗る方法の数
-		(size2[prev]-1)!Πdp/size
-	親の親方向は
-		dp2[prev] / (size2[prev]-1)!
-	親の子方向は
-		dp[prev]からN!と自分方向の寄与を消したものなので
-		dp[prev] / (size[prev]-1)! * size[cur]! / dp[cur]
-	*/
-//	DD("");
-//	DD(cur);
-//	DD(prev);
-	modll v = 1LL;
-	if(prev!=-1) {
-		v *= dp2[prev] * inv_facts[size2[prev]-1];
-//		DD("parent of parent");
-//		DD(dp2[prev]);
-//		DD(size2[prev]-1);
-//		DD(facts[size2[prev]-1]);
-//		DD(dp2[prev] * inv_facts[size2[prev]-1]);
-	}
-	if(prev!=-1) {
-		v *= dp[prev] * inv_facts[size[prev]-1] * facts[size[cur]] * dp[cur].inv();
-//		DD("bro");
-//		DD(dp[prev]);
-//		DD(size[prev]);
-//		DD(facts[size[prev]-1]);
-//		DD(size[cur]);
-//		DD(facts[size[cur]]);
-//		DD(dp[cur]);
-//		DD(dp[prev] * inv_facts[size[prev]-1] * facts[size[cur]] * dp[cur].inv());
-	}
-	dp2[cur] = 1LL;
-	if(prev!=-1) {
-		dp2[cur] = facts[size2[cur]-2] * v;
-//		DD("total");
-//		DD(size2[cur]-2);
-//		DD(facts[size2[cur]-2]);
-	}
-//	DD(dp2[cur]);
-	for(ll adj: g[cur]) if(adj!=prev) {
-		dfs2(adj, cur, g);
-	}
-}
+#include <functional>
+#include <stack>
+#include <vector>
+
+template <class T> class ReRooting {
+public:
+    int NodeCount;
+
+private:
+    std::vector<std::vector<int>> Adjacents;
+    std::vector<std::vector<int>> IndexForAdjacent;
+
+    std::vector<T> Res;
+    std::vector<std::vector<T>> DP;
+
+    T Identity;
+    std::function<T(T, T)> Operate;
+    std::function<T(T, int)> OperateNode;
+
+public:
+    ReRooting(int nodeCount, std::vector<std::vector<int>> edges, T identity,
+                std::function<T(T, T)> operate,
+                std::function<T(T, int)> operateNode) {
+        NodeCount = nodeCount;
+
+        Identity = identity;
+        Operate = operate;
+        OperateNode = operateNode;
+
+        std::vector<std::vector<int>> adjacents(nodeCount);
+        std::vector<std::vector<int>> indexForAdjacents(nodeCount);
+
+        for (int i = 0; i < edges.size(); i++) {
+            auto &edge = edges[i];
+            indexForAdjacents[edge[0]].push_back(adjacents[edge[1]].size());
+            indexForAdjacents[edge[1]].push_back(adjacents[edge[0]].size());
+            adjacents[edge[0]].push_back(edge[1]);
+            adjacents[edge[1]].push_back(edge[0]);
+        }
+
+        Adjacents = std::vector<std::vector<int>>(nodeCount);
+        IndexForAdjacent = std::vector<std::vector<int>>(nodeCount);
+        for (int i = 0; i < nodeCount; i++) {
+            Adjacents[i] = adjacents[i];
+            IndexForAdjacent[i] = indexForAdjacents[i];
+        }
+
+        DP = std::vector<std::vector<T>>(Adjacents.size());
+        Res = std::vector<T>(Adjacents.size());
+
+        for (int i = 0; i < Adjacents.size(); i++)
+            DP[i] = std::vector<T>(Adjacents[i].size());
+        if (NodeCount > 1)
+            Initialize();
+        else if (NodeCount == 1)
+            Res[0] = OperateNode(Identity, 0);
+    }
+
+    T Query(int node) { return Res[node]; }
+
+private:
+    void Initialize() {
+        std::vector<int> parents(NodeCount);
+        std::vector<int> order(NodeCount);
+
+#pragma region InitOrderedTree
+        int index = 0;
+        std::stack<int> stack;
+        stack.push(0);
+        parents[0] = -1;
+        while (stack.size() > 0) {
+            auto node = stack.top();
+            stack.pop();
+            order[index++] = node;
+            for (int i = 0; i < Adjacents[node].size(); i++) {
+                auto adjacent = Adjacents[node][i];
+                if (adjacent == parents[node])
+                    continue;
+                stack.push(adjacent);
+                parents[adjacent] = node;
+            }
+        }
+#pragma endregion
+
+#pragma region fromLeaf
+        for (int i = order.size() - 1; i >= 1; i--) {
+            auto node = order[i];
+            auto parent = parents[node];
+
+            T accum = Identity;
+            int parentIndex = -1;
+            for (int j = 0; j < Adjacents[node].size(); j++) {
+                if (Adjacents[node][j] == parent) {
+                    parentIndex = j;
+                    continue;
+                }
+                accum = Operate(accum, DP[node][j]);
+            }
+            DP[parent][IndexForAdjacent[node][parentIndex]] =
+                OperateNode(accum, node);
+        }
+#pragma endregion
+
+#pragma region toLeaf
+        for (int i = 0; i < order.size(); i++) {
+            auto node = order[i];
+            T accum = Identity;
+            std::vector<T> accumsFromTail(Adjacents[node].size());
+            accumsFromTail[accumsFromTail.size() - 1] = Identity;
+            for (int j = accumsFromTail.size() - 1; j >= 1; j--)
+                    accumsFromTail[j - 1] = Operate(DP[node][j], accumsFromTail[j]);
+            for (int j = 0; j < accumsFromTail.size(); j++) {
+                DP[Adjacents[node][j]][IndexForAdjacent[node][j]] =
+                    OperateNode(Operate(accum, accumsFromTail[j]), node);
+                accum = Operate(accum, DP[node][j]);
+            }
+            Res[node] = OperateNode(accum, node);
+        }
+#pragma endregion
+    }
+};
+
+
+struct NV {
+	modll v;
+	int size;
+	bool div;
+};
 int main() {
 	gen_facts();
 	cin.tie(0);
 	ios::sync_with_stdio(false);
 	ll N,A,B;
 	while(cin>>N) {
-		VVI g(N);
+		vector<vector<int>> edges;
 		REP(i, N-1) {
 			cin>>A>>B;
 			A--;B--;
-			g[A].PB(B);
-			g[B].PB(A);
+			edges.PB(vector<int>{(int)A, (int)B});
 		}
-//		REP(i, N) {
-//			dp = vector<modll>(N);
-//			size = VI(N);
-//			dfs(i, -1, g);
-//			DD(dp);DD(size);
-//			cout<<dp[i]<<endl;
-//		}
-		dp = vector<modll>(N);
-		size = VI(N);
-		dfs(0, -1, g);
-		dp2 = vector<modll>(N);
-		size2 = VI(N);
-		dfs2(0, -1, g);
-//		DD(dp);
-//		DD(dp2);
-//		DD(size);
-//		DD(size2);
+		auto mergeFun = [&](NV a, NV b) -> NV {
+			modll v = a.v * b.v;
+			if(!a.div) v *= inv_facts[a.size];
+			if(!b.div) v *= inv_facts[b.size];
+			return NV{
+				v,
+				a.size + b.size,
+				true,
+			};
+		};
+		auto nodeFun = [&](NV a, int idx) -> NV {
+			return NV{a.v * facts[a.size], a.size+1, false};
+		};
+		ReRooting<NV> rr(N, edges, NV{1LL, 0, false}, mergeFun, nodeFun);
 		REP(i, N) {
-			/*
-			(N-1)!*dp2[cur]/(size2[cur]-1)!*dp[cur]/(size[cur]-1)!
-			*/
-			modll ans = facts[N-1]*dp2[i]*inv_facts[size2[i]-1]*dp[i]*inv_facts[size[i]-1];
-			cout<<ans<<endl;
+			cout<<rr.Query(i).v<<endl;
 		}
-//		break;
 	}
 	
 	return 0;
