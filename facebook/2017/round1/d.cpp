@@ -1,0 +1,148 @@
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <queue>
+#include <algorithm>
+#include <numeric>
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <climits>
+#include <cstdlib>
+#include <cstring>
+#include <cfloat>
+#include <cmath>
+#include <ctime>
+#include <cstdio>
+#include <cassert>
+using namespace std;
+
+#define EPS 1e-12
+#define ull unsigned long long
+#define ll long long
+#define VI vector<ll>
+#define PII pair<ll, ll> 
+#define VVI vector<vector<ll> >
+#define REP(i,n) for(int i=0,_n=(n);(i)<(int)_n;++i)
+#define RANGE(i,a,b) for(int i=(int)a,_b=(int)(b);(i)<_b;++i)
+#define FOR(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
+#define ALL(c) (c).begin(), (c).end()
+#define ALLR(c) (c).rbegin(), (c).rend()
+#define PB push_back
+#define MP(a, b) make_pair(a, b)
+#define POPCOUNT __builtin_popcount
+#define POPCOUNTLL __builtin_popcountll
+#define CLEAR(table, v) memset(table, v, sizeof(table));
+#define PRINT1(table, D0) REP(d0, D0) cout<<table[d0]<<" "; cout<<"\n";
+#define PRINT2(table, D0, D1) REP(d0, D0) { REP(d1, D1) cout<<table[d0][d1]<<" "; cout<<"\n"; }
+#define PRINT3(table, D0, D1, D2) REP(d0, D0) { REP(d1, D1) { REP(d2, D2) cout<<table[d0][d1][d2]<<" "; cout<<"\n"; } cout<<"\n"; }
+#define UNIFORM_DOUBLE(a, b) (((b-a)*(double)rand()/RAND_MAX)+a) // [a, b) 
+#define UNIFORM_LL(a, b) (ll)UNIFORM_DOUBLE(a, b) // [a, b) 
+#define IN(v, lo, hi) ((lo)<=(v) && (v)<(hi))
+#define DD(v) cout<<#v<<": "<<v<<endl
+template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const map<T0, T1>& v) { for( typename map<T0, T1>::const_iterator p = v.begin(); p!=v.end(); p++ ){os << p->first << ": " << p->second << " ";} return os; }
+template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const pair<T0, T1>& v) { os << v.first << ": " << v.second << " "; return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<T>& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << " "; } return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const set<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
+/*
+increase stack size!!!!!!
+// 16MB
+g++ -O2 -Wl,-stack_size,10000000 -std=c++11 -Wall d.cpp && ./a.out < corporate_gifting.txt > do2.txt
+*/
+
+struct modll {
+	static const ll MODVAL;
+	ll val;
+	modll() : val(0) {}
+	modll(ll v) : val(v) { normalize(); }
+	void normalize() { val = (val+MODVAL) % MODVAL; }
+	modll  operator+ (ll v) { return modll(val+v); }
+	modll& operator+=(ll v) { val+=v; normalize(); return *this; }
+	modll  operator- (ll v) { return modll(val-v); }
+	modll& operator-=(ll v) { val-=v; normalize(); return *this; }
+	modll  operator* (ll v) { return modll(val*v); }
+	modll& operator*=(ll v) { val*=v; normalize(); return *this; }
+	modll  operator^ (ll e) { modll x(val); modll v(1); for(;e;x=x*x,e>>=1) if(e&1) v = v * x; return v; } // pow
+	modll inv() { modll x(val); return x^(MODVAL-2); } // MODVAL must be prime number when use this!
+	static modll inv(ll v) { return modll(v).inv(); }
+	operator ll() { return val; }
+};
+const ll modll::MODVAL = 1000000007;
+
+#define MAXN 2300
+modll facts[MAXN];
+modll inv_facts[MAXN];
+ll mod_combination(ll n, ll r) {
+	assert(0<=n && n<MAXN); assert(0<=r && r<=n);
+	return modll(facts[n]) * inv_facts[r] * inv_facts[n-r];
+}
+ll mod_combination2(ll n, ll r) {
+	modll ans = 1;
+	REP(i, r) ans *= n-i;
+	REP(i, r) ans *= modll(i+1).inv();
+	return ans;
+}
+void gen_facts() {
+	facts[0] = 1;
+	inv_facts[0] = modll::inv(facts[0]);
+	RANGE(i, 1, MAXN) facts[i] = facts[i-1] * modll(i);
+	RANGE(i, 1, MAXN) inv_facts[i] = inv_facts[i-1] * modll::inv(i);
+	REP(i, MAXN) assert((facts[i] * inv_facts[i])==1);
+}
+
+const ll maxMemo = 1000010000;
+//const ll maxMemo = 1010000;
+modll memo[maxMemo];
+
+modll f(ll N, ll space) {
+	assert(space+N < maxMemo);
+	modll ans = memo[space+N] * memo[space].inv();
+	ans *= modll(N).inv() * modll(N-1).inv();
+	return ans;
+}
+
+int main() {
+	memo[0] = memo[1] = 1;
+	RANGE(i, 2, maxMemo) memo[i] = modll(i)*memo[i-1];
+//	RANGE(i, 1, maxMemo) DD(memo[i]);
+//	DD("preCalcFinished");
+
+//	gen_facts();
+	//ios::sync_with_stdio(false);
+	int Cases;
+	cin>>Cases;
+	REP(CaseID, Cases) {
+		ll N, M;
+		cin>>N>>M;
+		VI R(N);
+		REP(i, N) cin>>R[i];
+		ll sum = accumulate(ALL(R), 0LL);
+		modll ans = 0;
+		if(N==1) {
+			ans = M;
+		} else {
+			REP(i, N) REP(j, N) if(i<j) {
+//				DD(i),DD(j);
+				ll Min = sum*2-R[i]-R[j];
+				ll space = M - 1 - Min;
+				if(space<0) continue;
+//				DD(N);
+//				DD(space);
+				modll lans = f(N, space);
+//				modll lans = mod_combination(N+space, space) * facts[N-2];
+//				DD(lans);
+				ans += lans;
+			}
+			ans *= 2;
+		}
+		cout<<"Case #"<<CaseID+1<<": "<<(ll)ans<<endl;
+//		break;
+	}
+	
+	return 0;
+}
