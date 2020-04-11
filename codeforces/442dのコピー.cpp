@@ -1,6 +1,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <stack>
 #include <queue>
 #include <algorithm>
 #include <numeric>
@@ -15,8 +16,6 @@
 #include <cfloat>
 #include <cmath>
 #include <ctime>
-#include <cassert>
-#include <cctype>
 #include <cstdio>
 #include <cassert>
 using namespace std;
@@ -27,12 +26,8 @@ using namespace std;
 #define VI vector<ll>
 #define PII pair<ll, ll> 
 #define VVI vector<vector<ll> >
-#define VVVI vector<vector<vector<ll>>>
-#define VVVVI vector<vector<vector<vector<ll>>>>
-#define REP(i,n) for(ll i=0,_n=(n);(i)<(ll)_n;++i)
-#define REPR(i,n) for(ll i=(ll)(n)-1;0<=(i);--i)
-#define RANGE(i,a,b) for(ll i=(ll)a,_b=(ll)(b);(i)<_b;++i)
-#define RANGER(i,a,b) for(ll i=(ll)(b)-1,_a=(ll)(a);(_a)<=i;--i)
+#define REP(i,n) for(int i=0,_n=(n);(i)<(int)_n;++i)
+#define RANGE(i,a,b) for(int i=(int)a,_b=(int)(b);(i)<_b;++i)
 #define FOR(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
 #define ALL(c) (c).begin(), (c).end()
 #define ALLR(c) (c).rbegin(), (c).rend()
@@ -41,33 +36,66 @@ using namespace std;
 #define POPCOUNT __builtin_popcount
 #define POPCOUNTLL __builtin_popcountll
 #define CLEAR(table, v) memset(table, v, sizeof(table));
+#define PRINT1(table, D0) REP(d0, D0) cout<<table[d0]<<" "; cout<<"\n";
+#define PRINT2(table, D0, D1) REP(d0, D0) { REP(d1, D1) cout<<table[d0][d1]<<" "; cout<<"\n"; }
+#define PRINT3(table, D0, D1, D2) REP(d0, D0) { REP(d1, D1) { REP(d2, D2) cout<<table[d0][d1][d2]<<" "; cout<<"\n"; } cout<<"\n"; }
 #define UNIFORM_DOUBLE(a, b) (((b-a)*(double)rand()/RAND_MAX)+a) // [a, b) 
 #define UNIFORM_LL(a, b) (ll)UNIFORM_DOUBLE(a, b) // [a, b) 
 #define IN(v, lo, hi) ((lo)<=(v) && (v)<(hi))
 #define DD(v) cout<<#v<<": "<<v<<endl
-#define FI first
-#define SE second
 template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const map<T0, T1>& v) { for( typename map<T0, T1>::const_iterator p = v.begin(); p!=v.end(); p++ ){os << p->first << ": " << p->second << " ";} return os; }
 template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const pair<T0, T1>& v) { os << v.first << ": " << v.second << " "; return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const vector<T>& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << " "; } return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const set<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
-template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
-template<typename T>void maxUpdate(T& a, T b) {a = max(a, b);}
-template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
 
+#define MOD 1000000007LL
 #define INF (1LL<<60)
 
 int main() {
+//	REP(i, 1000) cout<<string(1000, '.')<<endl;
+//	return 0;
+
 	cin.tie(0);
 	ios::sync_with_stdio(false);
-	ll N,M,W,H;
-	string s;
-	while(cin>>N) {
-		REP(i, N) {
+	int W,H,K,X0,Y0,X1,Y1;
+	int dx[] = {-1, 1, 0, 0};
+	int dy[] = {0, 0, -1, 1};
+	while(cin>>H>>W>>K) {
+		vector<string> m(H);
+		REP(y, H) cin>>m[y];
+		cin>>Y0>>X0>>Y1>>X1;
+		X0--;Y0--;X1--;Y1--;
+
+		using V = tuple<int, int, int, int>;
+		priority_queue<V, vector<V>, greater<V> > q;
+		q.push(make_tuple(0, 0, X0, Y0));
+		VVI po(H, VI(W, 1LL<<60));
+		po[Y0][X0]=0;
+		while(q.size()) {
+			int p, step, x, y;
+			tie(p, step, x, y) = q.top();
+//			DD(p);DD(x);DD(y);
+			q.pop();
+			if(x==X1 && y==Y1) break;
+			if(po[y][x]!=p) continue;
+			REP(dir, 4) {
+				RANGE(step, 1, K+1) {
+					ll nx = x+dx[dir]*step;
+					ll ny = y+dy[dir]*step;
+					if(IN(nx, 0, W) && IN(ny, 0, H) && m[ny][nx]!='#') {
+						if(p+1 < po[ny][nx]) {
+							po[ny][nx] = p+1;
+							q.push(make_tuple(p+1, K-step, nx, ny));
+						}
+					} else break;
+				}
+			}
 		}
-		
-		cout<<""<<endl;
+//		DD(po);
+		ll ans = po[Y1][X1]==1LL<<60 ? -1 : po[Y1][X1];
+		cout<<ans<<endl;
 	}
 	
 	return 0;
