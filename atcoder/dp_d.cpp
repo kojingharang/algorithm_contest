@@ -1,12 +1,14 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <stack>
 #include <queue>
 #include <algorithm>
 #include <numeric>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
+#include <functional>
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <climits>
@@ -15,24 +17,18 @@
 #include <cfloat>
 #include <cmath>
 #include <ctime>
-#include <cassert>
-#include <cctype>
 #include <cstdio>
 #include <cassert>
 using namespace std;
- 
+
 #define EPS 1e-12
 #define ull unsigned long long
 #define ll long long
 #define VI vector<ll>
 #define PII pair<ll, ll> 
 #define VVI vector<vector<ll> >
-#define VVVI vector<vector<vector<ll>>>
-#define VVVVI vector<vector<vector<vector<ll>>>>
-#define REP(i,n) for(ll i=0,_n=(n);(i)<(ll)_n;++i)
-#define REPR(i,n) for(ll i=(ll)(n)-1;0<=(i);--i)
-#define RANGE(i,a,b) for(ll i=(ll)a,_b=(ll)(b);(i)<_b;++i)
-#define RANGER(i,a,b) for(ll i=(ll)(b)-1,_a=(ll)(a);(_a)<=i;--i)
+#define REP(i,n) for(int i=0,_n=(n);(i)<(int)_n;++i)
+#define RANGE(i,a,b) for(int i=(int)a,_b=(int)(b);(i)<_b;++i)
 #define FOR(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
 #define ALL(c) (c).begin(), (c).end()
 #define ALLR(c) (c).rbegin(), (c).rend()
@@ -41,86 +37,68 @@ using namespace std;
 #define POPCOUNT __builtin_popcount
 #define POPCOUNTLL __builtin_popcountll
 #define CLEAR(table, v) memset(table, v, sizeof(table));
+#define PRINT1(table, D0) REP(d0, D0) cout<<table[d0]<<" "; cout<<"\n";
+#define PRINT2(table, D0, D1) REP(d0, D0) { REP(d1, D1) cout<<table[d0][d1]<<" "; cout<<"\n"; }
+#define PRINT3(table, D0, D1, D2) REP(d0, D0) { REP(d1, D1) { REP(d2, D2) cout<<table[d0][d1][d2]<<" "; cout<<"\n"; } cout<<"\n"; }
 #define UNIFORM_DOUBLE(a, b) (((b-a)*(double)rand()/RAND_MAX)+a) // [a, b) 
 #define UNIFORM_LL(a, b) (ll)UNIFORM_DOUBLE(a, b) // [a, b) 
 #define IN(v, lo, hi) ((lo)<=(v) && (v)<(hi))
 #define DD(v) cout<<#v<<": "<<v<<endl
-#define FI first
-#define SE second
 template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const map<T0, T1>& v) { for( typename map<T0, T1>::const_iterator p = v.begin(); p!=v.end(); p++ ){os << p->first << ": " << p->second << " ";} return os; }
 template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const pair<T0, T1>& v) { os << v.first << ": " << v.second << " "; return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const vector<T>& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << " "; } return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const set<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
-template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
-template<typename T>void maxUpdate(T& a, T b) {a = max(a, b);}
-template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
- 
+
 #define MOD 1000000007LL
 #define INF (1LL<<60)
- 
-struct UnionFind {
-	vector<int> data;
-	UnionFind(int size) : data(size, -1) { }
-	bool unite(int x, int y) {
-		x = root(x); y = root(y);
-		if (x != y) {
-			if (data[y] < data[x]) swap(x, y);
-			data[x] += data[y]; data[y] = x;
-		}
-		return x != y;
-	}
-	bool same(int x, int y) { return root(x) == root(y); }
-	int root(int x) { return data[x] < 0 ? x : data[x] = root(data[x]); }
-	int size(int x) { return -data[root(x)]; }
-};
- 
+
+const ll L2 = 201;
+const ll L3 = 101;
+const ll L5 = 101;
+double dp[2][L2][L3][L5];
+
+
 int main() {
 	cin.tie(0);
 	ios::sync_with_stdio(false);
-	ll N;
-	while(cin>>N) {
-		ll M = 100000;
-		VI X(N), Y(N);
-		VI LX(M), LY(M);
-//		VVI esx(M), esy(M);
-		REP(i, N) {
-			cin>>X[i]>>Y[i];
-			esx[X[i]].PB(Y[i]);
-			esy[Y[i]].PB(X[i]);
-		}
-		UnionFind ux(M), uy(M);
-//		REP(i, M) REP(j, esx[i].size()) uy.unite(esx[i][0], esx[i][j]);
-//		REP(i, M) REP(j, esy[i].size()) ux.unite(esy[i][0], esy[i][j]);
-		REP(i, N) {
-			if(LY[X[i]]) {
-				uy.unite(LY[X[i]], Y[i]);
-//				cout<<"UNITE Y "<<LY[X[i]]<<" "<<Y[i]<<endl;
+	ll N,D;
+	while(cin>>N>>D) {
+		VI ps = {2,3,5};
+		VI fa(ps.size());
+		REP(i, ps.size()) while(D % ps[i]==0) fa[i]++, D/=ps[i];
+		VVI tb = {
+			{0,0,0},
+			{1,0,0},
+			{0,1,0},
+			{2,0,0},
+			{0,0,1},
+			{1,1,0},
+		};
+		double ans = 0;
+		if(D==1) {
+			CLEAR(dp, 0);
+			dp[0][0][0][0] = 1;
+			ll m = 1;
+			REP(i, N) {
+				REP(i2, L2) REP(i3, L3) REP(i5, L5) dp[m][i2][i3][i5]=0;
+				REP(i2, L2) REP(i3, L3) REP(i5, L5) if(dp[1-m][i2][i3][i5]>0.0) {
+					REP(ti, tb.size()) {
+						ll ni2 = i2 + tb[ti][0];
+						ll ni3 = i3 + tb[ti][1];
+						ll ni5 = i5 + tb[ti][2];
+						if(ni2<L2 && ni3<L3 && ni5<L5) dp[m][ni2][ni3][ni5] += dp[1-m][i2][i3][i5] / 6.0;
+					}
+				}
+				m ^= 1;
 			}
-			LY[X[i]]=Y[i];
-			if(LX[Y[i]]) {
-				ux.unite(LX[Y[i]], X[i]);
-//				cout<<"UNITE X "<<LX[Y[i]]<<" "<<X[i]<<endl;
-			}
-			LX[Y[i]]=X[i];
-		}
-		set<PII> vis;
-		ll ans = 0;
-		REP(i, N) {
-			ll rx = ux.root(X[i]);
-			ll ry = uy.root(Y[i]);
-			if(!vis.count(MP(rx, ry))) {
-				vis.insert(MP(rx, ry));
-//				cout<<"ADD "<<ux.size(X[i])<<" "<<uy.size(Y[i])<<endl;
-				ans += ux.size(rx) * uy.size(ry);
+			RANGE(i2, fa[0], L2) RANGE(i3, fa[1], L3) RANGE(i5, fa[2], L5) {
+				ans += dp[1-m][i2][i3][i5];
 			}
 		}
-		ans -= N;
-		
-		cout<<ans<<endl;
-//		break;
+		cout<<setprecision(20)<<ans<<endl;
 	}
 	
 	return 0;
 }
-

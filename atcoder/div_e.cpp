@@ -20,7 +20,7 @@
 #include <cstdio>
 #include <cassert>
 using namespace std;
- 
+
 #define EPS 1e-12
 #define ull unsigned long long
 #define ll long long
@@ -55,72 +55,44 @@ template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>&
 template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
 template<typename T>void maxUpdate(T& a, T b) {a = max(a, b);}
 template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
- 
+
 #define MOD 1000000007LL
 #define INF (1LL<<60)
- 
-struct UnionFind {
-	vector<int> data;
-	UnionFind(int size) : data(size, -1) { }
-	bool unite(int x, int y) {
-		x = root(x); y = root(y);
-		if (x != y) {
-			if (data[y] < data[x]) swap(x, y);
-			data[x] += data[y]; data[y] = x;
-		}
-		return x != y;
-	}
-	bool same(int x, int y) { return root(x) == root(y); }
-	int root(int x) { return data[x] < 0 ? x : data[x] = root(data[x]); }
-	int size(int x) { return -data[root(x)]; }
-};
- 
+
+/*
+dp[i] ... [0, i) まで見てすべての区間のxorが X なものの個数
+*/
 int main() {
 	cin.tie(0);
 	ios::sync_with_stdio(false);
 	ll N;
 	while(cin>>N) {
-		ll M = 100000;
-		VI X(N), Y(N);
-		VI LX(M), LY(M);
-//		VVI esx(M), esy(M);
-		REP(i, N) {
-			cin>>X[i]>>Y[i];
-			esx[X[i]].PB(Y[i]);
-			esy[Y[i]].PB(X[i]);
-		}
-		UnionFind ux(M), uy(M);
-//		REP(i, M) REP(j, esx[i].size()) uy.unite(esx[i][0], esx[i][j]);
-//		REP(i, M) REP(j, esy[i].size()) ux.unite(esy[i][0], esy[i][j]);
-		REP(i, N) {
-			if(LY[X[i]]) {
-				uy.unite(LY[X[i]], Y[i]);
-//				cout<<"UNITE Y "<<LY[X[i]]<<" "<<Y[i]<<endl;
-			}
-			LY[X[i]]=Y[i];
-			if(LX[Y[i]]) {
-				ux.unite(LX[Y[i]], X[i]);
-//				cout<<"UNITE X "<<LX[Y[i]]<<" "<<X[i]<<endl;
-			}
-			LX[Y[i]]=X[i];
-		}
-		set<PII> vis;
+		VI A(N);
+		REP(i, N) cin>>A[i];
+		VI acc(N+1);
+		REP(i, N) acc[i+1] = acc[i] ^ A[i];
+		DD(acc);
+		ll all = 0;
+		REP(i, N) all ^= A[i];
+		set<ll> cands;
+		cands.insert(0);
+		cands.insert(all);
+		DD(cands);
 		ll ans = 0;
-		REP(i, N) {
-			ll rx = ux.root(X[i]);
-			ll ry = uy.root(Y[i]);
-			if(!vis.count(MP(rx, ry))) {
-				vis.insert(MP(rx, ry));
-//				cout<<"ADD "<<ux.size(X[i])<<" "<<uy.size(Y[i])<<endl;
-				ans += ux.size(rx) * uy.size(ry);
+		for(ll v : cands) {
+			VI dp(N+1);
+			dp[0] = 1;
+			RANGE(i, 1, N+1) {
+				REP(j, i) {
+					// [j+1, i-1]まででvになるか?
+					if((acc[i]^acc[j])==v) dp[i] += dp[j];
+				}
 			}
+			DD(dp);
+			ans += dp[N];
 		}
-		ans -= N;
-		
 		cout<<ans<<endl;
-//		break;
 	}
 	
 	return 0;
 }
-

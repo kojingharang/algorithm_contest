@@ -20,7 +20,7 @@
 #include <cstdio>
 #include <cassert>
 using namespace std;
- 
+
 #define EPS 1e-12
 #define ull unsigned long long
 #define ll long long
@@ -55,72 +55,100 @@ template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>&
 template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
 template<typename T>void maxUpdate(T& a, T b) {a = max(a, b);}
 template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
- 
+
 #define MOD 1000000007LL
 #define INF (1LL<<60)
- 
-struct UnionFind {
-	vector<int> data;
-	UnionFind(int size) : data(size, -1) { }
-	bool unite(int x, int y) {
-		x = root(x); y = root(y);
-		if (x != y) {
-			if (data[y] < data[x]) swap(x, y);
-			data[x] += data[y]; data[y] = x;
-		}
-		return x != y;
+
+ll gcd(ll a,ll b) { return b?gcd(b,a%b):a; }
+ll lcm(ll a,ll b) { return a/gcd(a,b)*b; }
+struct Gcd {
+	typedef ll valueType;
+	static ll e() {
+		return 0;
 	}
-	bool same(int x, int y) { return root(x) == root(y); }
-	int root(int x) { return data[x] < 0 ? x : data[x] = root(data[x]); }
-	int size(int x) { return -data[root(x)]; }
+	static ll op(ll a, ll b) {
+		if(a==e()) return b;
+		if(b==e()) return a;
+		return gcd(llabs(a), llabs(b));
+	}
 };
- 
+struct Max {
+	typedef ll valueType;
+	static ll e() {
+		return 0;
+	}
+	static ll op(ll a, ll b) {
+		return max(a, b);
+	}
+};
+template<typename Traits>
+class SegTree {
+public:
+	typedef typename Traits::valueType T;
+	int N;
+	vector<T> dat;
+	SegTree(int _N) {
+		N=1; while(N<_N) N*=2;
+		dat = vector<T>(2*N, Traits::e());
+	}
+	// idx is 0 base
+	void update(int idx, T v) {
+		idx += N-1;
+		dat[idx] = v;
+		while(idx>0) {
+			idx = (idx-1)/2;
+			dat[idx] = Traits::op(dat[idx*2+1], dat[idx*2+2]);
+		}
+	}
+	// [a, b)
+	T query(int a, int b) { return query(a, b, 0, 0, N); }
+	T query(int a, int b, int k, int l, int r) {
+		if(r<=a || b<=l) return Traits::e();
+		if(a<=l && r<=b) return dat[k];
+		else {
+			T vl = query(a, b, k*2+1, l, (l+r)/2);
+			T vr = query(a, b, k*2+2, (l+r)/2, r);
+			return Traits::op(vl, vr);
+		}
+	}
+};
+
+
 int main() {
 	cin.tie(0);
 	ios::sync_with_stdio(false);
 	ll N;
 	while(cin>>N) {
-		ll M = 100000;
-		VI X(N), Y(N);
-		VI LX(M), LY(M);
-//		VVI esx(M), esy(M);
+		vector<PII> XL(N);
+		set<ll> rset;
 		REP(i, N) {
-			cin>>X[i]>>Y[i];
-			esx[X[i]].PB(Y[i]);
-			esy[Y[i]].PB(X[i]);
+			ll x, l;
+			cin>>x>>l;
+			rset.insert(x+l);
+			XL[i] = MP(x-l, l);
 		}
-		UnionFind ux(M), uy(M);
-//		REP(i, M) REP(j, esx[i].size()) uy.unite(esx[i][0], esx[i][j]);
-//		REP(i, M) REP(j, esy[i].size()) ux.unite(esy[i][0], esy[i][j]);
+		sort(ALL(XL));
+		vector<ll> rs(ALL(rset));
+//		vector<ll> cost(rs.size());
+		SegTree<Max> cost(rs.size());
+
 		REP(i, N) {
-			if(LY[X[i]]) {
-				uy.unite(LY[X[i]], Y[i]);
-//				cout<<"UNITE Y "<<LY[X[i]]<<" "<<Y[i]<<endl;
-			}
-			LY[X[i]]=Y[i];
-			if(LX[Y[i]]) {
-				ux.unite(LX[Y[i]], X[i]);
-//				cout<<"UNITE X "<<LX[Y[i]]<<" "<<X[i]<<endl;
-			}
-			LX[Y[i]]=X[i];
+			ll l = XL[i].FI;
+			ll r = XL[i].FI+XL[i].SE*2;
+			ll rub = distance(rs.begin(), upper_bound(ALL(rs), l));
+			ll ri = distance(rs.begin(), lower_bound(ALL(rs), r));
+//			ll mx = 0;
+//			REP(j, rub) maxUpdate(mx, cost[j]);
+//			maxUpdate(cost[ri], mx+1);
+			ll mx = cost.query(0, rub);
+			cost.update(ri, max(mx+1, cost.query(ri, ri+1)));
 		}
-		set<PII> vis;
-		ll ans = 0;
-		REP(i, N) {
-			ll rx = ux.root(X[i]);
-			ll ry = uy.root(Y[i]);
-			if(!vis.count(MP(rx, ry))) {
-				vis.insert(MP(rx, ry));
-//				cout<<"ADD "<<ux.size(X[i])<<" "<<uy.size(Y[i])<<endl;
-				ans += ux.size(rx) * uy.size(ry);
-			}
-		}
-		ans -= N;
-		
+//		DD(dp);
+		ll ans = cost.query(0, rs.size());
+//		ll ans = 0;
+//		REP(j, rs.size()) maxUpdate(ans, cost[j]);
 		cout<<ans<<endl;
-//		break;
 	}
 	
 	return 0;
 }
-

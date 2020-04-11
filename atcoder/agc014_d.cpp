@@ -1,6 +1,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <stack>
 #include <queue>
 #include <algorithm>
 #include <numeric>
@@ -15,24 +16,18 @@
 #include <cfloat>
 #include <cmath>
 #include <ctime>
-#include <cassert>
-#include <cctype>
 #include <cstdio>
 #include <cassert>
 using namespace std;
- 
+
 #define EPS 1e-12
 #define ull unsigned long long
 #define ll long long
 #define VI vector<ll>
 #define PII pair<ll, ll> 
 #define VVI vector<vector<ll> >
-#define VVVI vector<vector<vector<ll>>>
-#define VVVVI vector<vector<vector<vector<ll>>>>
-#define REP(i,n) for(ll i=0,_n=(n);(i)<(ll)_n;++i)
-#define REPR(i,n) for(ll i=(ll)(n)-1;0<=(i);--i)
-#define RANGE(i,a,b) for(ll i=(ll)a,_b=(ll)(b);(i)<_b;++i)
-#define RANGER(i,a,b) for(ll i=(ll)(b)-1,_a=(ll)(a);(_a)<=i;--i)
+#define REP(i,n) for(int i=0,_n=(n);(i)<(int)_n;++i)
+#define RANGE(i,a,b) for(int i=(int)a,_b=(int)(b);(i)<_b;++i)
 #define FOR(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
 #define ALL(c) (c).begin(), (c).end()
 #define ALLR(c) (c).rbegin(), (c).rend()
@@ -41,86 +36,101 @@ using namespace std;
 #define POPCOUNT __builtin_popcount
 #define POPCOUNTLL __builtin_popcountll
 #define CLEAR(table, v) memset(table, v, sizeof(table));
+#define PRINT1(table, D0) REP(d0, D0) cout<<table[d0]<<" "; cout<<"\n";
+#define PRINT2(table, D0, D1) REP(d0, D0) { REP(d1, D1) cout<<table[d0][d1]<<" "; cout<<"\n"; }
+#define PRINT3(table, D0, D1, D2) REP(d0, D0) { REP(d1, D1) { REP(d2, D2) cout<<table[d0][d1][d2]<<" "; cout<<"\n"; } cout<<"\n"; }
 #define UNIFORM_DOUBLE(a, b) (((b-a)*(double)rand()/RAND_MAX)+a) // [a, b) 
 #define UNIFORM_LL(a, b) (ll)UNIFORM_DOUBLE(a, b) // [a, b) 
 #define IN(v, lo, hi) ((lo)<=(v) && (v)<(hi))
 #define DD(v) cout<<#v<<": "<<v<<endl
-#define FI first
-#define SE second
 template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const map<T0, T1>& v) { for( typename map<T0, T1>::const_iterator p = v.begin(); p!=v.end(); p++ ){os << p->first << ": " << p->second << " ";} return os; }
 template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const pair<T0, T1>& v) { os << v.first << ": " << v.second << " "; return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const vector<T>& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << " "; } return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const set<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
 template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
-template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
-template<typename T>void maxUpdate(T& a, T b) {a = max(a, b);}
-template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
- 
+
 #define MOD 1000000007LL
 #define INF (1LL<<60)
- 
-struct UnionFind {
-	vector<int> data;
-	UnionFind(int size) : data(size, -1) { }
-	bool unite(int x, int y) {
-		x = root(x); y = root(y);
-		if (x != y) {
-			if (data[y] < data[x]) swap(x, y);
-			data[x] += data[y]; data[y] = x;
+
+
+/*
+白が２個以上の孤立点を作り出せれば白勝ち
+*/
+
+ll N;
+
+string solve1(VVI& g) {
+	while(1) {
+		ll edges = 0;
+		REP(i, N) {
+			int cnt=0;
+			edges += g[i].size();
+			for(int j : g[i]) {
+				if(g[j].size()==1) cnt++;
+			}
+			if(cnt>=2) {
+				return "First";
+			}
 		}
-		return x != y;
+		edges/=2;
+		if(edges==0) return "First";
+
+		// i - adj - X =... -> X =...
+		bool ch=false;
+		REP(i, N) {
+			if(g[i].size()==1) {
+				int adj = g[i][0];
+				if(g[adj].size()==2) {
+					int X = g[adj][0]==i ? g[adj][1] : g[adj][0];
+					{
+						auto en = remove_if(ALL(g[X]), [=](int a) { return adj==a; });
+						g[X].erase(en, g[X].end());
+					}
+					g[adj].clear();
+					g[i].clear();
+					ch=true;
+				}
+			}
+		}
+		if(!ch) break;
 	}
-	bool same(int x, int y) { return root(x) == root(y); }
-	int root(int x) { return data[x] < 0 ? x : data[x] = root(data[x]); }
-	int size(int x) { return -data[root(x)]; }
-};
- 
+	return "Second";
+}
+
+// return: このノード以下で完全マッチの相手を探しているノードの個数
+ll dfs(int u, int p, VVI& g) {
+	ll x = 0;
+	for(int v: g[u]) if(v!=p) x += dfs(v, u, g);
+	if(x==0) return 1; // need to match ... 子が全部マッチしてるので
+	if(x==1) return 0; // matched
+	return INF;
+}
+
+string solve2(VVI& g) {
+	ll rest = dfs(0, -1, g);
+	string ans = rest ? "First" : "Second";
+	return ans;
+}
+
 int main() {
-	cin.tie(0);
 	ios::sync_with_stdio(false);
-	ll N;
+	string s;
 	while(cin>>N) {
-		ll M = 100000;
-		VI X(N), Y(N);
-		VI LX(M), LY(M);
-//		VVI esx(M), esy(M);
-		REP(i, N) {
-			cin>>X[i]>>Y[i];
-			esx[X[i]].PB(Y[i]);
-			esy[Y[i]].PB(X[i]);
+		VVI g(N);
+		REP(i, N-1) {
+			ll A, B;
+			cin>>A>>B;
+			A--;B--;
+			g[A].PB(B);
+			g[B].PB(A);
 		}
-		UnionFind ux(M), uy(M);
-//		REP(i, M) REP(j, esx[i].size()) uy.unite(esx[i][0], esx[i][j]);
-//		REP(i, M) REP(j, esy[i].size()) ux.unite(esy[i][0], esy[i][j]);
-		REP(i, N) {
-			if(LY[X[i]]) {
-				uy.unite(LY[X[i]], Y[i]);
-//				cout<<"UNITE Y "<<LY[X[i]]<<" "<<Y[i]<<endl;
-			}
-			LY[X[i]]=Y[i];
-			if(LX[Y[i]]) {
-				ux.unite(LX[Y[i]], X[i]);
-//				cout<<"UNITE X "<<LX[Y[i]]<<" "<<X[i]<<endl;
-			}
-			LX[Y[i]]=X[i];
-		}
-		set<PII> vis;
-		ll ans = 0;
-		REP(i, N) {
-			ll rx = ux.root(X[i]);
-			ll ry = uy.root(Y[i]);
-			if(!vis.count(MP(rx, ry))) {
-				vis.insert(MP(rx, ry));
-//				cout<<"ADD "<<ux.size(X[i])<<" "<<uy.size(Y[i])<<endl;
-				ans += ux.size(rx) * uy.size(ry);
-			}
-		}
-		ans -= N;
-		
+
+		string ans = solve1(g);
+//		string ans = solve2(g);
+
 		cout<<ans<<endl;
-//		break;
 	}
 	
 	return 0;
 }
-

@@ -1,0 +1,133 @@
+#include <vector>
+#include <map>
+#include <set>
+#include <stack>
+#include <queue>
+#include <algorithm>
+#include <numeric>
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <climits>
+#include <cstdlib>
+#include <cstring>
+#include <cfloat>
+#include <cmath>
+#include <ctime>
+#include <cstdio>
+#include <cassert>
+using namespace std;
+
+#define EPS 1e-12
+#define ull unsigned long long
+#define ll long long
+#define VI vector<ll>
+#define PII pair<ll, ll> 
+#define VVI vector<vector<ll> >
+#define REP(i,n) for(int i=0,_n=(n);(i)<(int)_n;++i)
+#define RANGE(i,a,b) for(int i=(int)a,_b=(int)(b);(i)<_b;++i)
+#define FOR(i,c) for(__typeof((c).begin())i=(c).begin();i!=(c).end();++i)
+#define ALL(c) (c).begin(), (c).end()
+#define ALLR(c) (c).rbegin(), (c).rend()
+#define PB push_back
+#define MP(a, b) make_pair(a, b)
+#define POPCOUNT __builtin_popcount
+#define POPCOUNTLL __builtin_popcountll
+#define CLEAR(table, v) memset(table, v, sizeof(table));
+#define PRINT1(table, D0) REP(d0, D0) cout<<table[d0]<<" "; cout<<"\n";
+#define PRINT2(table, D0, D1) REP(d0, D0) { REP(d1, D1) cout<<table[d0][d1]<<" "; cout<<"\n"; }
+#define PRINT3(table, D0, D1, D2) REP(d0, D0) { REP(d1, D1) { REP(d2, D2) cout<<table[d0][d1][d2]<<" "; cout<<"\n"; } cout<<"\n"; }
+#define UNIFORM_DOUBLE(a, b) (((b-a)*(double)rand()/RAND_MAX)+a) // [a, b) 
+#define UNIFORM_LL(a, b) (ll)UNIFORM_DOUBLE(a, b) // [a, b) 
+#define IN(v, lo, hi) ((lo)<=(v) && (v)<(hi))
+#define DD(v) cout<<#v<<": "<<v<<endl
+template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const pair<T0, T1>& v) { os << v.first << ": " << v.second << " "; return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<T>& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << " "; } return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const set<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
+template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>& v) { vector<T> tmp(v.begin(), v.end()); os << tmp; return os; }
+template <typename T0, typename T1> std::ostream& operator<<(std::ostream& os, const map<T0, T1>& v) { for( typename map<T0, T1>::const_iterator p = v.begin(); p!=v.end(); p++ ){os << p->first << ": " << p->second << " ";} return os; }
+
+#define MOD 1000000007LL
+#define INF (1LL<<60)
+
+int main() {
+	cin.tie(0);
+	ios::sync_with_stdio(false);
+	ll N;
+	string s;
+	while(cin>>N>>s) {
+//		DD(s);
+		VI dp(N);
+		VI sr(N), sl(N);
+		{
+			ll c = 0;
+			REP(i, N) {
+				if(s[i]=='0') c=0;
+				if(s[i]=='1') c++;
+				sl[i]=c;
+			}
+		}
+		{
+			ll c = 0;
+			REP(ii, N) {
+				ll i = N-1-ii;
+				if(s[i]=='0') c=0;
+				if(s[i]=='1') c++;
+				sr[i]=c;
+			}
+		}
+		map<ll, vector<pair<ll, pair<ll, ll>>>> h;
+		RANGE(i, 1, N-1) if(s[i]=='0' && s[i-1]=='1' && s[i+1]=='1') {
+			VI ss, es;
+			RANGE(s, i-1-sl[i-1]+1, i-1+1) {
+				ll cost = max(1, i-1-s+1);
+				ll e = i+1;
+				h[e].PB(MP(s, MP(e, cost)));
+			}
+			RANGE(e, i+1, i+1+sr[i+1]-1+1) {
+				ll cost = max(1, e-(i+1)+1);
+				ll s = i-1;
+				h[e].PB(MP(s, MP(e, cost)));
+			}
+		}
+//		DD(h);
+		REP(i, N) {
+			dp[i] = i-1>=0 ? dp[i-1] : 0;
+			if(!h.count(i)) continue;
+
+			auto& rs = h[i];
+			for(auto& v : rs) {
+				// k ... j ... i
+				// 1 1 1 0 1 1 1
+				ll s = v.first;
+				ll e = v.second.first;
+				ll cost = v.second.second;
+				dp[i] = max(dp[i], (s-1>=0 ? dp[s-1] : 0) + cost);
+			}
+		}
+//		REP(i, N) {
+//			dp[i] = i-1>=0 ? dp[i-1] : 0;
+//			if(s[i]=='1') {
+//				for(int j=i-1;j>=0;j--) {
+//					if(s[j]=='0') {
+//						for(int k=j-1;k>=0;k--) {
+//							if(s[k]!='1') break;
+//							// k ... j ... i
+//							// 1 1 1 0 1 1 1
+//							dp[i] = max(dp[i], (k-1>=0 ? dp[k-1] : 0) + max(j-k, i-j));
+//						}
+//						break;
+//					}
+//				}
+//			}
+//		}
+//		DD(dp);
+		cout<<dp[N-1]<<endl;
+//		break;
+	}
+	
+	return 0;
+}

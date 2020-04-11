@@ -20,7 +20,7 @@
 #include <cstdio>
 #include <cassert>
 using namespace std;
- 
+
 #define EPS 1e-12
 #define ull unsigned long long
 #define ll long long
@@ -55,72 +55,59 @@ template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>&
 template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
 template<typename T>void maxUpdate(T& a, T b) {a = max(a, b);}
 template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
- 
+
 #define MOD 1000000007LL
 #define INF (1LL<<60)
- 
-struct UnionFind {
-	vector<int> data;
-	UnionFind(int size) : data(size, -1) { }
-	bool unite(int x, int y) {
-		x = root(x); y = root(y);
-		if (x != y) {
-			if (data[y] < data[x]) swap(x, y);
-			data[x] += data[y]; data[y] = x;
-		}
-		return x != y;
+
+/*
+どの時点でも、コインがある頂点からなる木は常に連結
+コインを何枚取るかは無関係なので状態としてはコインの有無(T/F)だけ考えればよい
+vからとった場合、そこから見てTな葉がすべてFになる
+Tな葉の数は単調減少
+ある木で考えた場合、各ノードに対する操作は上(root方向への移動)か下(leaf方向への移動)にわけられる
+	上の場合各ノードの子だけが影響する
+	下の場合各ノードの子以外だけが影響する
+各ノード, 上下ごとに「何回操作するとFになるか」が決まる
+あるノードを選んだ場合、Tはいくつ減るか?
+	Tな葉の場合Tな葉の個数-1
+	else Tな葉の個数
+
+
+状態遷移木を考えて、葉からFirstかSecondか決めていき根の値が答え。
+問題は状態が大きいのと遷移が多い
+*/
+PII dfs(ll prev, ll cur, VVI& g) {
+	PII r = MP(0, cur);
+	for(ll nxt : g[cur]) if(nxt!=prev) {
+		PII t = dfs(cur, nxt, g);
+		t.first++;
+		if(r.first < t.first) r = t;
 	}
-	bool same(int x, int y) { return root(x) == root(y); }
-	int root(int x) { return data[x] < 0 ? x : data[x] = root(data[x]); }
-	int size(int x) { return -data[root(x)]; }
-};
- 
+	return r;
+}
+ll treeDiameter(VVI& g) {
+	PII a = dfs(-1, 0, g);
+	PII b = dfs(-1, a.second, g);
+	return b.first;
+}
 int main() {
 	cin.tie(0);
 	ios::sync_with_stdio(false);
-	ll N;
+	ll N,A,B;
 	while(cin>>N) {
-		ll M = 100000;
-		VI X(N), Y(N);
-		VI LX(M), LY(M);
-//		VVI esx(M), esy(M);
-		REP(i, N) {
-			cin>>X[i]>>Y[i];
-			esx[X[i]].PB(Y[i]);
-			esy[Y[i]].PB(X[i]);
+		VVI g(N);
+		REP(i, N-1) {
+			cin>>A>>B;
+			A--;B--;
+			g[A].PB(B);
+			g[B].PB(A);
 		}
-		UnionFind ux(M), uy(M);
-//		REP(i, M) REP(j, esx[i].size()) uy.unite(esx[i][0], esx[i][j]);
-//		REP(i, M) REP(j, esy[i].size()) ux.unite(esy[i][0], esy[i][j]);
-		REP(i, N) {
-			if(LY[X[i]]) {
-				uy.unite(LY[X[i]], Y[i]);
-//				cout<<"UNITE Y "<<LY[X[i]]<<" "<<Y[i]<<endl;
-			}
-			LY[X[i]]=Y[i];
-			if(LX[Y[i]]) {
-				ux.unite(LX[Y[i]], X[i]);
-//				cout<<"UNITE X "<<LX[Y[i]]<<" "<<X[i]<<endl;
-			}
-			LX[Y[i]]=X[i];
-		}
-		set<PII> vis;
-		ll ans = 0;
-		REP(i, N) {
-			ll rx = ux.root(X[i]);
-			ll ry = uy.root(Y[i]);
-			if(!vis.count(MP(rx, ry))) {
-				vis.insert(MP(rx, ry));
-//				cout<<"ADD "<<ux.size(X[i])<<" "<<uy.size(Y[i])<<endl;
-				ans += ux.size(rx) * uy.size(ry);
-			}
-		}
-		ans -= N;
-		
+//		DD(g);
+		ll d = treeDiameter(g);
+//		DD(d);
+		string ans = d%3==1 ? "Second" : "First";
 		cout<<ans<<endl;
-//		break;
 	}
 	
 	return 0;
 }
-
