@@ -58,34 +58,6 @@ template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
 
 #define INF (1LL<<60)
 
-/*
-N%2==0の場合
-o.o.o.o.
-o.o.o.Xo
-o.o.Xo.o
-o.Xo.o.o
-Xo.o.o.o
-Xは1個かつ最後使う or 0個かつ最後使わない
-
-N%2==1の場合
-o.o.o.o.X
-o.o.o.Xo.
-o.o.o.XXo
-o.o.Xo.o.
-o.o.Xo.Xo
-o.o.XXo.o
-o.Xo.o.o.
-o.Xo.o.Xo
-o.Xo.Xo.o
-o.XXo.o.o
-Xo.o.o.o.
-Xo.o.o.Xo
-Xo.o.Xo.o
-Xo.Xo.o.o
-XXo.o.o.o
-Xは1個かつ最後使わない or 2個かつ最後使う
-
-*/
 int main() {
 	cin.tie(0);
 	ios::sync_with_stdio(false);
@@ -93,40 +65,106 @@ int main() {
 	while(cin>>N) {
 		VI A(N);
 		REP(i, N) cin>>A[i];
-		// dp[l][s][i] 0〜iまででl=1...最後のを選んだ, s...連続して選んでない場所がs箇所
-		VVVI dp(2, VVI(3, VI(N, -INF)));
-		dp[0][1][0] = 0;
-		dp[1][0][0] = A[0];
-		RANGE(i, 1, N) REP(s, 3) {
-			// 選ばない
-			dp[0][s][i] = max(0<=s-1 ? dp[0][s-1][i-1] : -INF, dp[1][s][i-1]);
-			// 選ぶ
-			dp[1][s][i] = dp[0][s][i-1]+A[i];
+
+		// naive
+//		VVVI ref;
+//		{
+//			VVVI dp(2, VVI(N, VI(N/2+1, -INF)));
+//			dp[0][0][0] = 0;
+//			dp[1][0][1] = A[0];
+//			RANGE(i, 1, N) REP(j, N/2+1) {
+//				dp[0][i][j] = max(dp[0][i-1][j], dp[1][i-1][j]);
+//				if(0<=j-1) dp[1][i][j] = dp[0][i-1][j-1]+A[i];
+//			}
+//			ll ans = max(dp[0][N-1][N/2], dp[1][N-1][N/2]);
+//			DD(dp);
+//			ref = dp;
+//			cout<<ans<<endl;
+//		}
+
+		
+		{
+			// 何も考えずiでは(i+2)/2からlimit-1個少ない分だけ持つようにする
+			// [0, i] では最大 (i+2)/2 個, [i+1, N-1] では (N-1-(i+1)+1+1)/2個, 合計N/2個になればいいので N/2-(N-i)/2個〜(i+2)/2個まで考えればいい...とかぎりぎりまで考察しなくても
+			// [0, i] までで最大 (i+2)/2 個, それより10以上少ないものは考慮しなくていい, という難易度の低い考察で正解にたどり着ける.
+			ll limit=10;
+			vector<vector<map<ll, ll>>> dp(2, vector<map<ll, ll>>(N, map<ll, ll>()));
+			dp[0][0][0] = 0;
+			dp[1][0][1] = A[0];
+			auto Base = [](ll i) {
+				return (i+2)/2;
+			};
+			auto Get = [](map<ll, ll>& m, ll key) {
+				return m.count(key) ? m[key] : -INF;
+			};
+			RANGE(i, 1, N) RANGE(j, Base(i)-limit+1, Base(i)+1) {
+				dp[0][i][j] = max(Get(dp[0][i-1], j), Get(dp[1][i-1], j));
+				dp[1][i][j] = Get(dp[0][i-1], j-1)+A[i];
+			}
+			ll ans = max(Get(dp[0][N-1], N/2), Get(dp[1][N-1], N/2));
+//			DD(dp);
+			cout<<ans<<endl;
 		}
-//		DD(dp);
-		ll ans = 0;
-		if(N%2==0) {
-			ans = max(dp[0][0][N-1], dp[1][1][N-1]);
-		} else {
-			ans = max(dp[0][1][N-1], dp[1][2][N-1]);
+
+		if(0)
+		{
+			// 何も考えずiでは(i+2)/2からlimit-1個少ない分だけ持つようにする
+			// [limit-1] : (i+2)/2
+			// [limit-1-((i+2)/2-idx)] : idx
+			ll limit=10;
+			auto BaseCount = [](ll i) {
+				return (i+2)/2;
+			};
+			auto Idx = [&](ll i, ll count) {
+				return limit-1-(BaseCount(i)-count);
+			};
+			auto Count = [&](ll i, ll idx) {
+				return BaseCount(i) - (limit-1-idx);
+			};
+			auto In = [&](ll i, ll count) {
+				ll idx = Idx(i, count);
+				return 0 <= idx && idx < limit;
+			};
+			VVVI dp(2, VVI(N, VI(limit, -INF)));
+			if(In(0, 0)) dp[0][0][Idx(0, 0)] = 0;
+			if(In(0, 1)) dp[1][0][Idx(0, 1)] = A[0];
+			RANGE(i, 1, N) REP(j, limit) {
+				ll co = Count(i, j);
+				if(In(i-1, co)) dp[0][i][j] = max(dp[0][i-1][Idx(i-1, co)], dp[1][i-1][Idx(i-1, co)]);
+				if(In(i-1, co-1)) dp[1][i][j] = dp[0][i-1][Idx(i-1, co-1)]+A[i];
+			}
+			ll ans = max(dp[0][N-1][Idx(N-1, N/2)], dp[1][N-1][Idx(N-1, N/2)]);
+	//		DD(dp);
+	//		REP(li, 2) REP(i, N) REP(ci, limit) {
+	//			if(0<=Count(i, ci) && Count(i, ci)<N/2+1 && dp[li][i][ci]!=ref[li][i][Count(i, ci)]) {
+	//				cout<<"diff "<<li<<" "<<i<<" "<<ci<<" "<<Count(i, ci)<<endl;
+	//				DD(dp[li][i][ci]);DD(ref[li][i][Count(i, ci)]);
+	//			}
+	//		}
+			cout<<ans<<endl;
+	//		break;
 		}
-		cout<<ans<<endl;
+
+//		// dp[l][s][i] 0〜iまででl=1...最後のを選んだ, s...連続して選んでない場所がs箇所
+//		VVVI dp(2, VVI(3, VI(N, -INF)));
+//		dp[0][1][0] = 0;
+//		dp[1][0][0] = A[0];
+//		RANGE(i, 1, N) REP(s, 3) {
+//			// 選ばない
+//			dp[0][s][i] = max(0<=s-1 ? dp[0][s-1][i-1] : -INF, dp[1][s][i-1]);
+//			// 選ぶ
+//			dp[1][s][i] = dp[0][s][i-1]+A[i];
+//		}
+////		DD(dp);
+//		ll ans = 0;
+//		if(N%2==0) {
+//			ans = max(dp[0][0][N-1], dp[1][1][N-1]);
+//		} else {
+//			ans = max(dp[0][1][N-1], dp[1][2][N-1]);
+//		}
+//		cout<<ans<<endl;
 //		break;
 	}
 	
 	return 0;
 }
-/*
-.XXXX
-.XXXo
-.XXo.
-.Xo.o 2 ok
-.o.Xo 2 ok
-.o.o. 0 ok
-o.XXX
-o.XXo 3 ok
-o.Xo. 1 ok
-o.o.X 1 ok
-o.o.o
-*/
-
