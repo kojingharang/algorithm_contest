@@ -6,4 +6,6 @@ Makefile
 template.cpp
 lib.cpp
 paiza/
-C
+testing_tool.py
+interactive_runner.py
+local_testing_tool.py
