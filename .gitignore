@@ -1,0 +1,9 @@
+Makefile
+*.txt
+.DS_Store
+*.sh
+*.out
+template.cpp
+lib.cpp
+paiza/
+C
