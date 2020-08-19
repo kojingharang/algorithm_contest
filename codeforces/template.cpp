@@ -2,8 +2,10 @@
 #include <map>
 #include <set>
 #include <queue>
+#include <stack>
 #include <algorithm>
 #include <numeric>
+#include <functional>
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -55,19 +57,21 @@ template <typename T> std::ostream& operator<<(std::ostream& os, const deque<T>&
 template <typename T> std::ostream& operator<<(std::ostream& os, const vector<vector<T> >& v) { for( int i = 0; i < (int)v.size(); i++ ) { os << v[i] << endl; } return os; }
 template<typename T>void maxUpdate(T& a, T b) {a = max(a, b);}
 template<typename T>void minUpdate(T& a, T b) {a = min(a, b);}
+string YN(bool v) { return v ? "Yes":"No"; }
+void uniq(VI& es) { sort(ALL(es)); es.erase(unique(ALL(es)), es.end()); }
 
 #define INF (1LL<<60)
 
 int main() {
 	cin.tie(0);
 	ios::sync_with_stdio(false);
-	ll N,M,W,H;
+	ll N,M,W,H,K;
 	string s;
 	while(cin>>N) {
 		REP(i, N) {
 		}
-		
-		cout<<""<<endl;
+		ll ans=0;
+		cout<<ans<<endl;
 	}
 	
 	return 0;
